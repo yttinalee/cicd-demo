@@ -1,0 +1,54 @@
+name: CI/CD Pipeline
+
+# When this runs: on every push and every pull request to main
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ---------- STAGE 1: Continuous Integration ----------
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest flake8
+
+      - name: Lint (code quality gate)
+        run: flake8 src tests --max-line-length=100
+
+      - name: Run unit tests (correctness gate)
+        run: pytest -v
+
+  # ---------- STAGE 2: Continuous Deployment ----------
+  # Only runs if 'test' passed AND we're on main (not on PRs)
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Build artifact
+        run: |
+          mkdir -p dist
+          cp -r src dist/
+          echo "Build completed at $(date)" > dist/build-info.txt
+
+      - name: Deploy (placeholder)
+        run: |
+          echo "Deploying to production..."
+          echo "In a real pipeline this step would push to a server,"
+          echo "a container registry, Hugging Face Spaces, Vercel, etc."
