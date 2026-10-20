@@ -29,7 +29,7 @@ jobs:
         run: flake8 src tests --max-line-length=100
 
       - name: Run unit tests (correctness gate)
-        run: pytest -v
+        run: PYTHONPATH=. pytest -v
 
   # ---------- STAGE 2: Continuous Deployment ----------
   # Only runs if 'test' passed AND we're on main (not on PRs)
